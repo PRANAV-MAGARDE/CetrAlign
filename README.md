@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # FinAgent — Autonomous AI Task Worker for F&O Finance
 
 FinAgent is a production-grade autonomous AI agent designed to handle end-to-end operational workflows in Futures & Options (F&O) finance. Given a natural-language instruction, FinAgent plans a sequence of sub-steps, executes specialized financial tools, verifies outcomes, and produces an evidence-backed audit report — all without human intervention. It supports adaptive retry logic and human escalation when tasks cannot be resolved automatically.
@@ -337,3 +338,4 @@ Research (ReAct, OpenAI function-calling benchmarks) consistently shows that age
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
