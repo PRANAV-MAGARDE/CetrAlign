@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "task": "Find the latest invoice from Zerodha Clearing, extract the amount and due date, process the payment, and confirm completion.",
+    "expected_tools": ["search_invoices", "get_invoice_details", "process_payment", "verify_payment_status"],
+    "category": "invoice_payment"
+  },
+  {
+    "id": 2,
+    "task": "Show me all pending invoices and their total amount due.",
+    "expected_tools": ["get_pending_invoices"],
+    "category": "invoice_query"
+  },
+  {
+    "id": 3,
+    "task": "Get the current risk metrics for our portfolio and identify if we are over the margin limit.",
+    "expected_tools": ["get_risk_metrics", "get_all_positions"],
+    "category": "risk_management"
+  },
+  {
+    "id": 4,
+    "task": "Check the details of the NIFTY50 futures contract expiring in October 2026 and calculate margin required for 5 lots.",
+    "expected_tools": ["get_contract_details", "check_margin_requirements"],
+    "category": "contract_query"
+  },
+  {
+    "id": 5,
+    "task": "Find and pay all overdue invoices from NSE Clearing Corp and add a compliance note for each payment.",
+    "expected_tools": ["search_invoices", "get_invoice_details", "process_payment", "add_compliance_note"],
+    "category": "compliance_payment"
+  },
+  {
+    "id": 6,
+    "task": "What is the PnL on our current open positions?",
+    "expected_tools": ["get_all_positions"],
+    "category": "portfolio_query"
+  },
+  {
+    "id": 7,
+    "task": "Get details for the NIFTY50 25000 Call option and check our margin requirements for 10 lots.",
+    "expected_tools": ["get_contract_details", "check_margin_requirements"],
+    "category": "options_query"
+  },
+  {
+    "id": 8,
+    "task": "Process payment for invoice INV-2026-002 and add a compliance note stating it was approved by the risk manager.",
+    "expected_tools": ["get_invoice_details", "process_payment", "add_compliance_note", "verify_payment_status"],
+    "category": "compliance_payment"
+  }
+]

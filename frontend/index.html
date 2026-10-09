@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CentrAlign AI – FinAgent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            bg: '#f6f4ee', // Warm off-white
+                            text: '#2d2a26', // Dark muted brown/black
+                            accent: '#6c6253', // Muted brownish grey
+                            button: '#36312a', // Dark brown/black for buttons
+                            card: '#ffffff',
+                            border: '#e8e4db'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+        
+        body { 
+            background-color: #f6f4ee; 
+            color: #2d2a26;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .serif-text { font-family: 'Playfair Display', serif; }
+        
+        .ca-button {
+            background-color: #36312a;
+            color: white;
+            border-radius: 9999px; /* Pill shape */
+            transition: all 0.2s ease;
+        }
+        .ca-button:hover {
+            background-color: #4a443a;
+            transform: translateY(-1px);
+        }
+        
+        .ca-button-outline {
+            background-color: transparent;
+            color: #2d2a26;
+            border: 1px solid #d3cec4;
+            border-radius: 9999px;
+            transition: all 0.2s ease;
+        }
+        .ca-button-outline:hover {
+            border-color: #36312a;
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .ca-card {
+            background: white;
+            border-radius: 16px;
+            border: 1px solid #e8e4db;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        .loader { 
+            border-top-color: #36312a; 
+            -webkit-animation: spinner 1s linear infinite; 
+            animation: spinner 1s linear infinite; 
+        }
+        @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Markdown Styling */
+        .markdown-body h1, .markdown-body h2 { font-family: 'Playfair Display', serif; font-size: 1.5em; margin-bottom: 0.5em; margin-top: 1em; color: #2d2a26;}
+        .markdown-body p { margin-bottom: 1em; line-height: 1.6; color: #4a443a; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; color: #4a443a; }
+        .markdown-body strong { font-weight: 600; color: #2d2a26; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d3cec4; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #b8b1a5; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+    <!-- Navbar -->
+    <nav class="px-8 py-5 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="text-xl font-semibold tracking-tight">CentrAlign AI</span>
+            <span class="text-brand-accent mx-2">|</span>
+            <span class="text-sm font-medium text-brand-accent">FinAgent Workspace</span>
+        </div>
+        <div class="flex items-center gap-6 text-sm font-medium">
+            <span id="system-status" class="flex items-center gap-2 text-brand-accent">
+                <span class="w-2 h-2 bg-gray-400 rounded-full"></span> Connecting...
+            </span>
+            <a href="/docs" target="_blank" class="text-brand-text hover:text-brand-accent transition-colors">API Docs</a>
+        </div>
+    </nav>
+
+    <div class="flex flex-1 overflow-hidden max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-8 gap-8">
+        
+        <!-- Sidebar (Task List) -->
+        <div class="w-80 flex flex-col h-full">
+            <div class="flex justify-between items-center mb-4 px-1">
+                <h2 class="font-medium text-sm text-brand-accent uppercase tracking-widest">Task History</h2>
+                <button onclick="fetchTasks()" class="text-brand-accent hover:text-brand-text transition-colors"><i class="fas fa-sync-alt text-xs"></i></button>
+            </div>
+            
+            <div id="task-list" class="flex-1 overflow-y-auto pr-2 space-y-3 pb-4">
+                <div class="text-center text-brand-accent py-10 text-sm">Loading tasks...</div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+            
+            <!-- Submit Task Area -->
+            <div class="mb-8">
+                <h1 class="text-4xl md:text-5xl font-medium tracking-tight mb-2">
+                    AI employees for the <span class="serif-text italic text-brand-accent">workforce.</span>
+                </h1>
+                <p class="text-brand-accent mb-6 max-w-2xl text-sm md:text-base">
+                    Submit natural language instructions for Futures & Options operations. FinAgent will autonomously plan, execute, and verify the task against our simulated database.
+                </p>
+                
+                <form id="submit-form" onsubmit="submitTask(event)" class="relative">
+                    <div class="relative ca-card p-1">
+                        <textarea id="task-input" rows="3" class="w-full bg-transparent border-none rounded-xl p-4 focus:ring-0 outline-none resize-none text-brand-text placeholder-brand-accent/50" placeholder="e.g. Find the latest invoice from Zerodha Clearing, extract the amount, and process payment..." required></textarea>
+                        <div class="absolute bottom-3 right-3">
+                            <button type="submit" id="submit-btn" class="ca-button px-5 py-2 text-sm font-medium flex items-center gap-2">
+                                <span>Execute task</span> <i class="fas fa-arrow-right text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Task Detail View -->
+            <div id="task-detail" class="flex-1 ca-card overflow-hidden flex flex-col hidden mt-2">
+                <!-- Header -->
+                <div class="px-8 py-6 border-b border-brand-border bg-[#faf9f6] flex justify-between items-start gap-4">
+                    <div>
+                        <div class="text-[10px] font-mono text-brand-accent mb-2 uppercase tracking-widest">TASK ID: <span id="detail-id"></span></div>
+                        <h2 id="detail-prompt" class="text-lg font-medium text-brand-text leading-snug"></h2>
+                    </div>
+                    <div id="detail-badge" class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex-shrink-0 border">
+                    </div>
+                </div>
+                
+                <!-- Body -->
+                <div class="p-8 flex-1 overflow-y-auto bg-white">
+                    <div id="detail-status-msg" class="text-sm font-medium text-brand-accent mb-6 pb-4 border-b border-brand-border"></div>
+                    
+                    <div id="detail-loading" class="flex flex-col items-center justify-center py-16 hidden">
+                        <div class="loader rounded-full border-2 border-t-2 border-brand-border h-8 w-8 mb-4"></div>
+                        <p class="text-brand-text font-medium text-sm">Agent is working...</p>
+                        <div class="mt-4 px-4 py-2 bg-brand-bg rounded-full text-xs text-brand-accent flex items-center gap-2">
+                            <i class="fas fa-circle-notch fa-spin"></i> Executing internal tools
+                        </div>
+                    </div>
+                    
+                    <div id="detail-report" class="markdown-body hidden">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="empty-state" class="flex-1 ca-card flex flex-col items-center justify-center text-brand-accent mt-2">
+                <div class="w-16 h-16 rounded-full bg-brand-bg flex items-center justify-center mb-4">
+                    <i class="fas fa-robot text-xl text-brand-text"></i>
+                </div>
+                <p class="text-sm">Select a task from the history to view its report,</p>
+                <p class="text-sm">or submit a new task above.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let pollingInterval = null;
+        let currentTaskId = null;
+
+        const statusStyles = {
+            'pending': 'bg-gray-100 text-gray-600 border-gray-200',
+            'planning': 'bg-blue-50 text-blue-600 border-blue-200',
+            'executing': 'bg-amber-50 text-amber-600 border-amber-200',
+            'verifying': 'bg-purple-50 text-purple-600 border-purple-200',
+            'completed': 'bg-green-50 text-green-700 border-green-200',
+            'failed': 'bg-red-50 text-red-600 border-red-200',
+            'escalated': 'bg-orange-50 text-orange-700 border-orange-200'
+        };
+
+        const statusIcons = {
+            'pending': 'fa-hourglass-start',
+            'planning': 'fa-brain',
+            'executing': 'fa-cogs',
+            'verifying': 'fa-check-double',
+            'completed': 'fa-check',
+            'failed': 'fa-times',
+            'escalated': 'fa-shield-alt'
+        };
+
+        function formatTime(isoStr) {
+            if (!isoStr) return '';
+            const d = new Date(isoStr);
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function checkHealth() {
+            try {
+                const res = await fetch(`${API_BASE}/health`);
+                const badge = document.getElementById('system-status');
+                if (res.ok) {
+                    badge.innerHTML = `<span class="w-2 h-2 bg-green-500 rounded-full"></span> Online`;
+                }
+            } catch (e) {
+                document.getElementById('system-status').innerHTML = `<span class="w-2 h-2 bg-red-500 rounded-full"></span> Offline`;
+            }
+        }
+
+        async function fetchTasks() {
+            try {
+                const res = await fetch(`${API_BASE}/tasks`);
+                const data = await res.json();
+                const listEl = document.getElementById('task-list');
+                
+                if (data.tasks.length === 0) {
+                    listEl.innerHTML = `<div class="text-center text-brand-accent py-10 text-sm">No task history.</div>`;
+                    return;
+                }
+
+                listEl.innerHTML = data.tasks.map(t => `
+                    <div onclick="viewTask('${t.task_id}')" class="p-5 rounded-2xl border ${currentTaskId === t.task_id ? 'border-brand-text bg-white shadow-md' : 'border-brand-border bg-white/50 hover:bg-white hover:border-[#d3cec4]'} cursor-pointer transition-all">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${statusStyles[t.status]} flex items-center gap-1.5 w-fit"><i class="fas ${statusIcons[t.status]}"></i> ${t.status}</span>
+                            <span class="text-xs text-brand-accent font-mono">${formatTime(t.created_at)}</span>
+                        </div>
+                        <p class="text-sm font-medium text-brand-text line-clamp-2 leading-relaxed">${t.original_task}</p>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error("Failed to fetch tasks", e);
+            }
+        }
+
+        async function submitTask(e) {
+            e.preventDefault();
+            const input = document.getElementById('task-input');
+            const btn = document.getElementById('submit-btn');
+            const task = input.value.trim();
+            if (!task) return;
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i>`;
+
+            try {
+                const res = await fetch(`${API_BASE}/tasks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ task: task })
+                });
+                const data = await res.json();
+                input.value = '';
+                await fetchTasks();
+                viewTask(data.task_id);
+            } catch (err) {
+                alert("Failed to submit task.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<span>Execute task</span> <i class="fas fa-arrow-right text-xs"></i>`;
+            }
+        }
+
+        async function viewTask(taskId) {
+            currentTaskId = taskId;
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('task-detail').classList.remove('hidden');
+            
+            await fetchTasks(); // Highlight active
+            pollTaskDetail(taskId);
+            
+            if (pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(() => pollTaskDetail(taskId), 2000);
+        }
+
+        async function pollTaskDetail(taskId) {
+            if (currentTaskId !== taskId) return;
+            try {
+                const res = await fetch(`${API_BASE}/tasks/${taskId}`);
+                const data = await res.json();
+
+                document.getElementById('detail-id').innerText = data.task_id;
+                
+                const badge = document.getElementById('detail-badge');
+                badge.className = `px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex-shrink-0 border flex items-center gap-1.5 ${statusStyles[data.status]}`;
+                badge.innerHTML = `<i class="fas ${statusIcons[data.status]}"></i> ${data.status}`;
+                
+                document.getElementById('detail-status-msg').innerText = data.message;
+
+                const isDone = ['completed', 'failed', 'escalated'].includes(data.status);
+                
+                const loadingEl = document.getElementById('detail-loading');
+                const reportEl = document.getElementById('detail-report');
+
+                if (isDone) {
+                    clearInterval(pollingInterval);
+                    loadingEl.classList.add('hidden');
+                    reportEl.classList.remove('hidden');
+                    if (data.status === 'completed' && data.report) {
+                        reportEl.innerHTML = marked.parse(data.report);
+                    } else if (data.status === 'failed') {
+                        reportEl.innerHTML = `<div class="p-4 bg-red-50 text-red-700 rounded-xl border border-red-200 text-sm"><i class="fas fa-exclamation-circle mr-2"></i> ${data.message}</div>`;
+                    } else if (data.status === 'escalated') {
+                        reportEl.innerHTML = `<div class="p-4 bg-orange-50 text-orange-800 rounded-xl border border-orange-200 text-sm"><i class="fas fa-shield-alt mr-2"></i> ${data.message}</div>`;
+                    } else {
+                        reportEl.innerHTML = `<div class="text-brand-accent italic text-sm">No report generated.</div>`;
+                    }
+                } else {
+                    loadingEl.classList.remove('hidden');
+                    reportEl.classList.add('hidden');
+                }
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        checkHealth();
+        fetchTasks();
+        setInterval(checkHealth, 10000);
+    </script>
+</body>
+</html>
